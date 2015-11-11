@@ -1,0 +1,307 @@
+################################################################################
+# Init File for FeatureReduce
+################################################################################
+
+################################################################################
+# GeneomeDir:	The directory that contains the appropriate UCSC genome flat files.
+# 		This sequence data is used to pad the probes to be on avg the same
+#		length as the IP fragments.
+#
+# bpmap and cel files should be in the same order and have the same keys (item before '=')
+#
+# CopyNumberFile:	Full name of the the copy number file (optional)
+# 			Contains the copy number of each probe in the genome
+################################################################################
+[DATA]
+GenomeDir = .
+ProbeLocsDir = .
+ProbeIntensitiesDir = .
+CopyNumberFile = .
+
+################################################################################
+# Probe location and sequence files must have *.bpmap.txt or *.fasta suffixes
+#
+# InputFileType: if ".fasta" and the *.fasta file does not exist then FeatureReduce will create it
+# 		from the *.bpmap.txt file. You can create the *.bpmap.txt file from a *.bpmap file with the
+#		ProbeExporter Tool. If ".bpmap.txt" then FeatureReduce will use the *.bpmap.txt files
+#		directly with genomic sequence.
+# BandWidth: 	the number of bases to be included around the position being analyzed.
+# 		The result is that <Bandwidth> nucleotides are associated with the probe signal
+#		If "ProbeLocation = Center", then BandWidth should be an even number
+# ProbeLocation: The location of the Probe Address within the BandWidth
+# 		 Current supported ProbeLocations are Center/Left/Right
+# KeySeparator:	 The character sequence that separates the sequence label and index in the key
+# 		 (examples: chr1,1478174 or chr1-1478174 or chr1|1478174
+# RemoveProbeSequence:	replace the probe sequence with N's. This will remove the subsequence that
+# 			generates possible ChIP assertainment bias
+# GenomeGroup:		Genome Group name in bpmap file. Hs for Affy human Tiling 1.0 and 2.0 arrays
+# 			''(blank) for Affy old Chr21/22 and Encode arrays; Mouse: Mm;
+#			Drosophila: Dm.Celegans: Ce; S.pombe: Sp
+# CacheSequences:	If Yes then FeatureReduce will cache all of the sequences.
+# 			MemoryUsage = Constant + (numPMs * BandWidth)
+# <number>:		the sequence data file for experiment <number>
+#			Numbers must start at 1 and increment by 1
+################################################################################
+[SEQUENCE]
+Alphabet = DNA
+InputFileType = .fasta
+OutputFileType =
+KeySeparator = -
+BandWidth = 2000
+ProbeWidth = 25
+ProbeLocation = Center
+IncludeProbeSequence = Yes
+GenomeGroup =
+SeqLength = 36
+#CacheSequences = Yes
+1 =
+
+################################################################################
+# Probe intenisity files must have *.bar.txt *.CEL , *.cel, *.ngr, *.xy.intensities or *.bpmap.intensities suffixes
+#
+# InputFileType:	if ".bpmap.intensities" and the *.bpmap.intensitites file does not exist then
+# 			FeatureReduce will create it.
+#		   	You can create a *.bar.txt file from a *.bar file with the CisGenome Tool
+#			If ".bar.txt" then FeatureReduce will use the *.bar.txt files directly
+#			If ".cel" then FeatureReduce will use the *.cel files directly
+#
+# If required, the *.bpmap.intensities file will be created from following priority list
+#    	 	1. *.bar.txt - Chr [tab] coordinate [tab] signal_value
+#		2. *.CEL, *.cel - Affymetrix CEL file format
+#		3. *.ngr - Affymetrix NGR file format
+#
+# *.bpmap.intensities and *.xy.intensities files have the format: uniqueID [tab] signal_value
+#
+# KeySeparator:	 The character sequence that separates the X and Y coordinates in the key
+# 		 (examples: 1034-345 or 1034,345 or 1034|345)
+# Grouping: 	separates all your cel files for an experiment into Treatment (1) or Control (0)
+# 		example: "Group = 111000" for 3 ChIP and 3 Input
+# 		example: "Group = 10" for 1 ChIP and 1 Input
+# Paired: 	Specify "Yes" if the treatment and control experiments are strictly paired, otherwise "No".
+# 		if Yes, then intensity = avg(exp) / avg(control)
+#		if No, then intentsity = ????
+# 	  	If paired, the cel files should be well aligned, like: ChIP1 ChIP2 ChIP3 Ctrl1 Ctrl2 Ctrl3
+# <number>:	all replicates of test and control cel files for experiment <number>. The coefficients from
+#  		each fit from each experiement are averaged so that final_coeffs = avg_{coeffs}(fit(exp1), fit(exp2), ...)
+#		Numbers must start at 1 and increment by 1
+# 		example: 1 = testReplicate1 testReplicate2 testReplicate3
+# 		example: 1 = testReplicate1 testReplicate2 controlReplicate1 controlReplicate2
+################################################################################
+[INTENSITIES]
+InputFileType = .CEL
+OutputFileType = .bpmap.norm.use.intensities
+OutputFilePrefix = cbf1.2.raw
+KeySeparator = ,
+Grouping = 1
+Paired = No
+#CacheIntensities = Yes
+1 =
+
+################################################################################
+# Algorithm: for each experiment above perform the following normalization
+  		MAT = Model-based Analysis of Tiling-arrays by Johnson et al., PNAS 2006
+# 		ratio = fit(avg_{intensities}(test) / avg_{intensities}(control))
+# 		logRatio = fit(log (avg_{intensities}(test) / avg_{intensities}(control)))
+#		diff = fit(avg_{intensities}(test) - avg_{intensities}(control))
+# UseTrimmedMean:	perform smoothing of the probe intensities by a trimmed mean over the TrimmedMeanBandWidth
+# TrimmedMeanBandWidth  Band-width around the probe to perform trimmed mean
+# TrimmedMeanPercent:	Percent of highest and lowest probes to drop from the TrimmedMean
+# TrimmedMeanProbeMin:   Minimum number of Probes (in a BandWidth of a Probe) required to perform the
+# 			trimmed Mean.
+# 			Any probes that do not have TrimmedMeanProbeMin probes in their bandwidth are
+#			dropped from the analysis.
+# IncludeCopyNumber:	The Copy Numbers of the probes will be included in the regression
+# 			If the CopyNumberFile does not exist then FeatureReduce will create it.
+#			(It takes a while!)
+################################################################################
+[NORMALIZATION]
+Algorithm = ratio
+UseTrimmedMean = No
+TrimmedMeanBandWidth = 600
+TrimmedMeanPercent = 10
+TrimmedMeanProbeMin = 10
+IncludeCopyNumber = No
+
+################################################################################
+# NonLinearAlgorithm:  GaussNewton = Gauss-Newton nonlinear least squares (nls from stats package)
+# 		       LevMar = Nonlinear Levenberg-Marquardt Method (nls.lm from minpack.lm package)
+#
+# 		       Simplex = Nonlinear Nelder-Mead Method
+#		       SecantLM = Nonlinear Secant Levenberg-Marquardt Method
+#		       Hamming = Linear Hamming Distance Multi-Variate Method
+# LinearAlgorithm:     lm = Linear Model (base package)
+# 		       nnls = Non Negative Least Sqaures (Lawson-Hanson nnls package)
+# 		       poisson = Generalized Linear Model - Possion (glm(family=poisson))
+# 		       rlm = Robust Linear Model (MASS package)
+# 		       lmrob = Robust Linear Model (robustbase package)
+# FeatureDiscoveryAlgorithm: enet = elastic net
+# 			     lars = lasso
+# InitialStepSize:	initial step-size to compute gradients
+# Strand:		"Both", "+", "-"
+# NumberOfProbes	ALL or Number of top intensity probes to use
+################################################################################
+[REGRESSION]
+RScriptsDir = c:/BindingSites/java
+RNonlinearScript = FeatureReduce.nonlinear.r
+RBgSubtractScript = FeatureReduce.bgSubtract.r
+# NonlinearAlgorithm = nls.levMar
+LinearAlgorithm = nnls
+# LinearAlgorithm = lm
+FeatureDiscoveryAlgorithm = rlm
+
+NumHoneIterations = 0
+NumNewPsamIterations = 5
+NumExtendAndPosBiasIterations = 2
+NumExtendIterations = 1
+FitAllPositionsWhenExtend = No
+NumNNDinucleotideInterations = 3
+NumPosBiasIterations = 1
+NumRemoveProbeIterations = 1
+
+PerformFinalFsamFit = Yes
+IncludeIntercept = Yes
+IterateColumnwisePsamRegression = Yes
+MinAffinityWeight = 0.0000000001
+Strand = Both
+BothStrandsCalc = Normed_sum
+#BothStrandsCalc = Sum
+NumberOfProbes = ALL
+NumberOfSeedSequences = 200
+SeedRegressionAlgorithm = robustGradDescent
+# SeedRegressionAlgorithm = pearson
+# SeedRegressionAlgorithm = sparseRegression
+#spacerLenRegressionAlgorithm = nnls
+#spacerLenRegressionAlgorithm = rlm
+# spacerLenRegressionAlgorithm = rlm.default
+spacerLenRegressionAlgorithm = lm
+RankedKmerForSeed = 1
+#PalindromicSeedThresh = 1.1
+PalindromicSeedThresh = 0.1
+CacheCounts = No
+UseHammingDistForApprox = No
+HammingDistForApprox = 3
+MaxVsize = 1G
+MaxMemSize = 2G
+Trace = No
+DisplayReturnData = No
+CvNum = 10
+Normalize = No
+EpsScalar = 1
+# Lambda = .000001
+Lambda = 0
+MinProbeAffinity = 1e-5
+# MinProbeAffinity = 0
+BackgroundSubtractIntensities = No
+RemoveBackgroundIntensityProbes = No
+
+################################################################################
+# PositionalBiasType			Smoothed, Cleaned, Raw
+# GetInsertionAffinities:		Perform multi-variate regression to get affinity cost of an
+# 					insertion between each position in the motif
+# GetInsertionSequenceAffinities:	Perform multi-variate regression to get affinity cost for each
+# 					nucleotide inserted between each position in the motif
+# GetDeletionAffinities:		Perform multi-variate regression to get affinity cost of a
+# 					nucleotide deletion at each position in the motif
+# GetSpacerLengthAffinities:		Perform multi-variate regression to get affinity cost of a particular
+# 					spacer-length between the two half-sites of the motif
+# GetSpacerSequenceAffinities:		Perform multi-variate regression to get affinity cost of each
+# 					spacer-sequence between the two half-sites of the motif
+# GetNNDinucleotideAffinities:		Perform multi-variate regression to get affinity cost of
+# 					Nearest-Neighbor dinucleotides in the motif
+# GetDinucleotideAffinities:		Perform multi-variate regression to get affinity cost of
+# 					all dinucleotides in the motif
+# GetTrinucleotideAffinities:		Perform multi-variate regression to get affinity cost of
+# 					all dinucleotides in the motif
+# GetTrinucleotideAffinities:		Perform multi-variate regression to get affinity cost of
+# 					all dinucleotides in the motif
+# GetNNTrinucleotideAffinities:		Perform multi-variate regression to get affinity cost of
+# 					all Nearest-Neighbor dinucleotides in the motif
+# GetBDNASameFaceDinucleotideAffinities:Perform multi-variate regression to get affinity cost of (k,k+5)
+# 					and (k,k+6) dinucleotides in the motif, and (k, k+5, k+6) trinucleotides
+# GetHillFunction:			Perform Nonlinear regression to fit the occupancy data to a
+# 					Hill-Function(ClusterSiteWidth(Binding-Sites)))
+# ClusterSiteWidth:			The width of a cluster-site in the
+# 					Hill-Function(ClusterSiteWidth(Binding-Sites))
+# ClusterSiteSlide:			The slide of the Hill-Function window in calculating
+# 					Sum(Hill-Function(ClusterSiteWidth(Binding-Sites)))
+################################################################################
+[AFFINITY MODELS]
+UseRegressionIntercept = No
+MinIterations = 1
+#RelativeFeatureAffinityThreshold = .05
+PerformStrandDetection = No
+RelativeFeatureAffinityThreshold = 0
+#GetPositionalBias = Yes
+GetPositionalBias = No
+PositionalBiasType = Smoothed
+GetHammingSpheresAffinities = No
+Get_CINI_InsertionAffinities = No
+Get_CIND_InsertionAffinities = No
+Get_CDND_InsertionAffinities = No
+Get_CI_DeletionAffinities = No
+Get_CD_DeletionAffinities = No
+Get_NNN_DinucleotideAffinities = No
+Get_NN_TrinucleotideAffinities = No
+
+SeedMotifMinLeftExtensionLength = 0
+SeedMotifMaxLeftExtensionLength = 0
+SeedMotifMinRightExtensionLength = 0
+SeedMotifMaxRightExtensionLength = 0
+
+#PosBiasWeightsL1Threshold = 0.17
+PosBiasWeightsL1Threshold = 0.25
+
+Get_NNDD_AdditiveAffinities = No
+Get_NN_DinucleotideAffinities = No
+# Get_NNDD_AdditiveAffinities = Yes
+# Get_NN_DinucleotideAffinities = Yes
+
+#GetAllKmerModel = Yes
+GetAllKmerModel = No
+
+KmerModelFractionDrops = .3 .3 .3 .3 .3 .3 .3 .3 .3
+KmerModelPercentSteps = .1 .1 .1 .1 .1 .1 .1 .1 .1
+KmerModelIterations = 100 100 100 100 100 100 100 100 100
+KmerModelInitTopDrops = .15 .15 .15 .15 .15 .15 .15 .15 .15
+KmerModelInitBottomDrops = .15 .15 .15 .15 .15 .15 .15 .15 .15
+ProbesPerKmerMultFactors = 1.3 1.3 1.3 1.3 1.3 1.3 1.3 1.3 1.3
+
+MaxKmersPerModel = 4095 4095 4095 4095 4095 4095 4095 4095 4095
+UseSparseKmerRegression = No No No No No No No No No
+
+TopPercentageKmersForScoring = 1.0 1.0 1.0 0.05 0.02
+IncludeNegativeInTopPercentage = Yes Yes Yes Yes Yes
+
+KmerModelLengths = 4 5 6 7 8
+KmerModelPosBiases = uniform uniform uniform uniform uniform
+NonNegativeRegression = false false false false false
+IncludeRevComps = false false false false false
+
+GetSpacerLengthAffinities = No
+SpacerLengthMin = 1
+# SpacerLengthMax = 4
+SpacerLengthMax = -1
+
+GetHillFunction = No
+ClusterSiteWidth = 300
+ClusterSiteSlide = 100
+
+RemoveProbes = No
+#RemoveProbes = Yes
+TruncationPosition = 3
+#ProbeRemovalThresh = .1
+ProbeRemovalThresh = .7
+
+
+
+################################################################################
+#
+#
+################################################################################
+[OUTPUT]
+Level = Verbose
+#Level = Debug
+DisplayLogos = yes
+Directory = results
+#Directory = results.dream.noseed
+WordCountsDir = wordCounts

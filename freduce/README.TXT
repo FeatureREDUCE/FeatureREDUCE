@@ -1,8 +1,8 @@
 ************************************************************************
-                          FeatureREDUCE 1.0
+                          FeatureREDUCE 1.10
                              Todd Riley
-                           Bussemaker Lab
-                         Columbia University
+                        Bussemaker & Riley Labs
+                  Columbia & UMASS-Boston Universities
 ************************************************************************
 
 
@@ -71,17 +71,20 @@ export RJAVA_HOME
 R_SHARE_DIR=/usr/share/R/share
 export R_SHARE_DIR
 
+FR_HOME=$HOME/freduce
+export FR_HOME
+
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RJAVA_HOME/site-library/rJava/jri
 export LD_LIBRARY_PATH
 
 # augment the CLASSPATH with all the FeatureREDUCE dependencies
-CLASSPATH=$CLASSPATH:$HOME/freduce/bin:$HOME/freduce/bin/biojava.jar
-:$HOME/freduce/bin/Biojava.suppl.v1.01.jar:$HOME/freduce/bin/bytecode.jar
-:$HOME/freduce/bin/commons-cli.jar:$HOME/freduce/bin/commons-collections-2.1.jar
-:$HOME/freduce/bin/commons-pool-1.1.jar:$HOME/freduce/bin/trove-3.0.2.jar
-:$HOME/freduce/bin/jfreechart-1.0.13.jar:$HOME/freduce/bin/jcommon-1.0.16.jar
-:$RJAVA_HOME/site-library/rJava/jri/JRI.jar:$HOME/freduce/bin/commons-lang-2.4.jar
-:$HOME/freduce/bin/itextpdf-5.1.0.jar
+CLASSPATH=$CLASSPATH:$FR_HOME/bin:$FR_HOME/bin/biojava.jar
+:$FR_HOME/bin/Biojava.suppl.v1.02.jar:$FR_HOME/bin/bytecode.jar
+:$FR_HOME/bin/commons-cli.jar:$FR_HOME/bin/commons-collections-2.1.jar
+:$FR_HOME/bin/commons-pool-1.1.jar:$FR_HOME/bin/trove-3.0.2.jar
+:$FR_HOME/bin/jfreechart-1.0.13.jar:$FR_HOME/bin/jcommon-1.0.16.jar
+:$RJAVA_HOME/site-library/rJava/jri/JRI.jar:$FR_HOME/bin/commons-lang-2.4.jar
+:$FR_HOME/bin/itextpdf-5.1.0.jar
 export CLASSPATH
 
 # Set the display if you're using Xvfb
@@ -120,13 +123,16 @@ a server environment without a designated high resolution monitor.
 .envrc - an environment script that sets needed R and FeatureREDUCE environment
 variables. Execute "source .envrc" in a bash shell to set the environment.
 
-examples.bash - a bash script that sets up an execution environment and contains
-many commented examples for how to run FeatureREDUCE on the sequences from the
-DREAM5 PBM Competition.
+The demos directory contains two subdirecties for different types of affinity
+model building with one executable bash script in each subdirectory:
 
-NOTE:  BEFORE YOU CAN RUN THE EXAMPLES IN THE EXAMPLES.BASH SCRIPT YOU MUST COPY
-THE FOLLOWING DREAM5 COMPETITION FILES INTO THE freduce DIRECTORY (the same
-directory where this README.TXT file is located):
+(2.1) demos/dream5.pbm/examples.bash - a bash script that sets up an execution
+environmentand contains many commented examples for how to run FeatureREDUCE on
+the PBM binding data from the DREAM5 Competition.
+
+NOTE:  The PBM binding data for only TF_1 is provided with the demo. To train
+models for the other TFs you must copy the following DREAM 5 competition files
+into the freduce directory (the same directory where this README.TXT file is located):
     DREAM5_PBM_Data_Needed_For_Predictions.txt
     DREAM5_PBM_TeamName_Predictions.txt
 
@@ -137,3 +143,8 @@ detrended use "-l dream.spatialDetrend" on the command line, and
 "Directory = dream.spatialDetrend" in the init file. This will make it much
 easier to keep track of your different models.
 
+(2.2) demos/bindingModes.pbm/bindingModes.bash - a bash script that  creates the
+9bp "overlapping half-sites" and 10bp "adjacent half-sites models for both the
+Yap1 and Gcn4 proteins. FeatureReduce creates unblended
+models for the two binding modes by recursively fitting to residuals. The PBM
+binding data for both Yap1 and Gcn4 are provided.

@@ -1,0 +1,7 @@
+This demo shows how FeatureREDUCE can be used to analyze the two distinct binding modes used
+by the bZIP transcription factor Gcn4p in terms of (i) a 9bp long "overlapping half-sites"
+PSAM and (ii) a 10bp "adjacent half-sites" PSAM.
+
+To run the demo, set the environment variables, and then execute the following command:
+
+   bash fitModel.sh
